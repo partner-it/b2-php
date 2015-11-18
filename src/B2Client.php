@@ -118,8 +118,6 @@ class B2Client
 		}
 
 		if ($result['statusCode'] >= 400) {
-			debug($result);
-			die();
 			throw new \RuntimeException('Error' . $result['statusCode'] . ' - ' . $result['responseBody']);
 		}
 
