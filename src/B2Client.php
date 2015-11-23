@@ -60,9 +60,6 @@ class B2Client
 
 		$this->accountId      = $accountId;
 		$this->applicationKey = $applicationKey;
-
-		$this->requestToken();
-
 		$this->Files = new Files($this);
 
 	}
@@ -118,7 +115,7 @@ class B2Client
 		}
 
 		if ($result['statusCode'] >= 400) {
-			throw new \RuntimeException('Error' . $result['statusCode'] . ' - ' . $result['responseBody']);
+			throw new \RuntimeException('Error' . $result['statusCode'] . ' - ' . $result['responseBody']['message']);
 		}
 
 	}
@@ -131,7 +128,7 @@ class B2Client
 	 * @return array
 	 * @throws \Exception
 	 */
-	private function curl($uri, $method = 'GET', $headers = [], $body = [])
+	public function curl($uri, $method = 'GET', $headers = [], $body = [])
 	{
 
 		$this->CurlRequest->setOption(CURLOPT_URL, $uri);

@@ -24,22 +24,46 @@ class B2ClientTest extends \PHPUnit_Framework_TestCase
 			->willReturn('foo');
 
 		$CurlRequest->method('execute')
-				->willReturn('foo');
+			->willReturn('foo');
 
 		$CurlRequest->method('setOption')
-				->willReturn(true);
+			->willReturn(true);
 
 		$CurlRequest->method('getErrorNo')
-				->willReturn(0);
+			->willReturn(0);
 
 		$CurlRequest->method('getInfo')
-				->will($this->returnValueMap([
-						[CURLINFO_HTTP_CODE, 200],
-				]));
+			->will($this->returnValueMap([
+				[CURLINFO_HTTP_CODE, 200],
+			]));
 
 		$client = new B2Client('myid', 'mykey', $CurlRequest);
 		$this->assertInstanceOf('B2\B2Client', $client);
 		$this->assertInstanceOf('B2\Files\Files', $client->Files);
+	}
+
+	public function testCall()
+	{
+
+		/**
+		 * @var $client B2Client
+		 */
+		$client = $this->getMockBuilder('\\B2\\B2Client')
+			->setConstructorArgs(['id', 'key'])
+			->setMethods(['curl'])
+			->getMock();
+
+		$client->setToken(['authorizationToken' => 'token', 'apiUrl' => 'https://url']);
+
+		$client->method('curl')
+				->will($this->returnCallback(function() {
+					return ['statusCode' => 200, 'responseBody' => ['message' => 'doh']];
+				}));
+
+
+		$result = $client->call('endpoint', 'POST');
+		var_dump($result);
+
 	}
 
 }
