@@ -1,5 +1,5 @@
 
-[ ![Codeship Status for partner-it/b2-php](https://codeship.com/projects/47347300-705f-0133-dfe5-0204a723cae7/status?branch=master)](https://codeship.com/projects/116533)
+[ ![Codeship Status for partner-it/b2-php](https://codeship.com/projects/47347300-705f-0133-dfe5-0204a723cae7/status?branch=master)](https://codeship.com/projects/116533) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/partner-it/b2-php/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/partner-it/b2-php/?branch=master) [![Code Coverage](https://scrutinizer-ci.com/g/partner-it/b2-php/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/partner-it/b2-php/?branch=master)
 
 # Backblaze B2 PHP wrapper
 
