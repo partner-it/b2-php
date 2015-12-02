@@ -6,5 +6,5 @@
 ## Installation
 
 ```
-composer require partner-ite/b2-php
+composer require partner-it/b2-php
 ```
