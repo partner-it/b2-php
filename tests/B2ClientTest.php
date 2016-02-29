@@ -11,85 +11,93 @@ use B2\B2Client;
 class B2ClientTest extends \PHPUnit_Framework_TestCase
 {
 
-	/**
-	 * Test Init
-	 */
-	public function testInit()
-	{
+    /**
+     * Test Init
+     */
+    public function testInit()
+    {
 
-		$CurlRequest = $this->getMockBuilder('\\PartnerIT\Curl\\Network\\CurlRequest')
-			->getMock();
+        $CurlRequest = $this->getMockBuilder('\\PartnerIT\Curl\\Network\\CurlRequest')
+            ->getMock();
 
-		$CurlRequest->method('execute')
-			->willReturn('foo');
+        $CurlRequest->method('execute')
+            ->willReturn('foo');
 
-		$CurlRequest->method('execute')
-			->willReturn('foo');
+        $CurlRequest->method('execute')
+            ->willReturn('foo');
 
-		$CurlRequest->method('setOption')
-			->willReturn(true);
+        $CurlRequest->method('setOption')
+            ->willReturn(true);
 
-		$CurlRequest->method('getErrorNo')
-			->willReturn(0);
+        $CurlRequest->method('getErrorNo')
+            ->willReturn(0);
 
-		$CurlRequest->method('getInfo')
-			->will($this->returnValueMap([
-				[CURLINFO_HTTP_CODE, 200],
-			]));
+        $CurlRequest->method('getInfo')
+            ->will($this->returnValueMap([
+                [CURLINFO_HTTP_CODE, 200],
+            ]));
 
-		$client = new B2Client('myid', 'mykey', $CurlRequest);
-		$this->assertInstanceOf('B2\B2Client', $client);
-		$this->assertInstanceOf('B2\Files\Files', $client->Files);
-	}
+        $client = new B2Client('myid', 'mykey', $CurlRequest);
+        $this->assertInstanceOf('B2\B2Client', $client);
+        $this->assertInstanceOf('B2\Files\Files', $client->Files);
+    }
 
-	public function testCallSuccess()
-	{
+    public function testCallSuccess()
+    {
 
-		/**
-		 * @var $client B2Client
-		 */
-		$client = $this->getMockBuilder('\\B2\\B2Client')
-			->setConstructorArgs(['id', 'key'])
-			->setMethods(['curl'])
-			->getMock();
+        /**
+         * @var $client B2Client
+         */
+        $client = $this->getMockBuilder('\\B2\\B2Client')
+            ->setConstructorArgs(['id', 'key'])
+            ->setMethods(['curl'])
+            ->getMock();
 
-		$client->setToken(['authorizationToken' => 'token', 'apiUrl' => 'https://url']);
+        $client->setToken([
+            'authorizationToken' => 'token',
+            'apiUrl'             => 'https://url',
+            'downloadUrl'        => 'https://downloadurl'
+        ]);
 
-		$client->method('curl')
-				->will($this->returnCallback(function() {
-					return ['statusCode' => 200, 'responseBody' => ['message' => 'doh']];
-				}));
+        $client->method('curl')
+            ->will($this->returnCallback(function () {
+                return ['statusCode' => 200, 'responseBody' => ['message' => 'doh']];
+            }));
 
-		$result = $client->call('endpoint', 'POST');
-		$this->assertEquals(['message' => 'doh'], $result);
+        $result = $client->call('endpoint', 'POST');
+        $this->assertEquals(['message' => 'doh'], $result);
 
-	}
+    }
 
-	/**
-	 * @expectedException RuntimeException
-	 * @expectedExceptionMessage This is a serverside error message
-	 */
-	public function testCallFailure()
-	{
+    /**
+     * @expectedException RuntimeException
+     * @expectedExceptionMessage This is a serverside error message
+     */
+    public function testCallFailure()
+    {
 
-		/**
-		 * @var $client B2Client
-		 */
-		$client = $this->getMockBuilder('\\B2\\B2Client')
-			->setConstructorArgs(['id', 'key'])
-			->setMethods(['curl'])
-			->getMock();
+        /**
+         * @var $client B2Client
+         */
+        $client = $this->getMockBuilder('\\B2\\B2Client')
+            ->setConstructorArgs(['id', 'key'])
+            ->setMethods(['curl'])
+            ->getMock();
 
-		$client->setToken(['authorizationToken' => 'token', 'apiUrl' => 'https://url']);
+        $client->setToken([
+            'authorizationToken' => 'token',
+            'apiUrl'             => 'https://url',
+            'downloadUrl'        => 'https://downloadurl'
+        ]);
 
-		$client->method('curl')
-			->will($this->returnCallback(function() {
-				return ['statusCode' => 400, 'responseBody' => ['message' => 'This is a serverside error message']];
-			}));
+        $client->method('curl')
+            ->will($this->returnCallback(function () {
+                return ['statusCode' => 400, 'responseBody' => ['message' => 'This is a serverside error message']];
+            }));
 
-		$result = $client->call('endpoint', 'POST');
-		$this->assertEquals(['message' => 'doh'], $result);
+        $result = $client->call('endpoint', 'POST');
+        $this->assertEquals(['message' => 'doh'], $result);
 
-	}
+    }
 
 }
