@@ -13,6 +13,7 @@ class FilesTest extends \PHPUnit_Framework_TestCase
     public function testInit()
     {
         $client = $this->getMockBuilder('\\B2\\B2Client')
+            ->setConstructorArgs(['id', 'key'])
             ->getMock();
         $Files  = new Files($client);
         $this->assertInstanceOf('\\B2\\B2Client', $Files->B2Client);
