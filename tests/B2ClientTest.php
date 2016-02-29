@@ -42,7 +42,7 @@ class B2ClientTest extends \PHPUnit_Framework_TestCase
 		$this->assertInstanceOf('B2\Files\Files', $client->Files);
 	}
 
-	public function testCall()
+	public function testCallSuccess()
 	{
 
 		/**
@@ -60,9 +60,35 @@ class B2ClientTest extends \PHPUnit_Framework_TestCase
 					return ['statusCode' => 200, 'responseBody' => ['message' => 'doh']];
 				}));
 
+		$result = $client->call('endpoint', 'POST');
+		$this->assertEquals(['message' => 'doh'], $result);
+
+	}
+
+	/**
+	 * @expectedException RuntimeException
+	 * @expectedExceptionMessage This is a serverside error message
+	 */
+	public function testCallFailure()
+	{
+
+		/**
+		 * @var $client B2Client
+		 */
+		$client = $this->getMockBuilder('\\B2\\B2Client')
+			->setConstructorArgs(['id', 'key'])
+			->setMethods(['curl'])
+			->getMock();
+
+		$client->setToken(['authorizationToken' => 'token', 'apiUrl' => 'https://url']);
+
+		$client->method('curl')
+			->will($this->returnCallback(function() {
+				return ['statusCode' => 400, 'responseBody' => ['message' => 'This is a serverside error message']];
+			}));
 
 		$result = $client->call('endpoint', 'POST');
-		var_dump($result);
+		$this->assertEquals(['message' => 'doh'], $result);
 
 	}
 
