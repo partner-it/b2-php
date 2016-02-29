@@ -97,16 +97,18 @@ class B2Client
 	 * @return mixed
 	 * @throws \Exception
 	 */
-	public function call($endpoint, $method, $data = [])
+    public function call($endpoint, $method, $data = [], $headers = [])
 	{
 
 		if (empty($this->authorizationToken)) {
 			throw new \Exception('You must set or generate a token');
 		}
 
-		$headers = [
-			$this->buildTokenAuthHeader()
-		];
+        if (!$headers) {
+            $headers = [
+                $this->buildTokenAuthHeader()
+            ];
+        }
 
 		$result = $this->curl($this->apiUrl . '/b2api/v1/' . $endpoint, $method, $headers, $data);
 
