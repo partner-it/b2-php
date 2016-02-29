@@ -100,4 +100,33 @@ class B2ClientTest extends \PHPUnit_Framework_TestCase
 
     }
 
+    public function testRequestToken()
+    {
+
+        /**
+         * @var $client B2Client
+         */
+        $client = $this->getMockBuilder('\\B2\\B2Client')
+            ->setConstructorArgs(['id', 'key'])
+            ->setMethods(['curl'])
+            ->getMock();
+
+        $client->method('curl')
+            ->will($this->returnCallback(function () {
+                return [
+                    'statusCode'   => 200,
+                    'responseBody' => [
+                        'downloadUrl'        => 'https://downloadurl',
+                        'apiUrl'             => 'https://apiurl',
+                        'authorizationToken' => 'authToken'
+                    ]
+                ];
+            }));
+
+        $result = $client->requestToken();
+        $this->assertTrue($result);
+        $this->assertEquals('https://downloadurl', $client->getDownloadUrl());
+
+    }
+
 }
