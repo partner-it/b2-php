@@ -1,6 +1,5 @@
 {
     "name": "partner-it/b2-php",
-    "type": "cakephp-plugin",
     "require": {
         "php": ">=5.4.16",
         "partner-it/php-curl-wrapper": "~1.0"
