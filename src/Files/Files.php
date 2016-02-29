@@ -1,5 +1,4 @@
 <?php
-
 namespace B2\Files;
 
 use B2\B2Client;
@@ -14,7 +13,7 @@ class Files
     /**
      * @var B2Client
      */
-    protected $B2Client;
+    public $B2Client;
 
     /**
      * Files constructor.
@@ -87,13 +86,13 @@ class Files
      * @param string $filePath The path to the local file
      * @param string $fileName The name/path on B2
      * @param string $contentType
-     * @param null $uploadUrl
+     * @param array $uploadUrlResponse
      * @return array
      */
     public function uploadFile($bucketId, $filePath, $fileName, $contentType, $uploadUrlResponse = [])
     {
 
-        if (!$uploadUrlResponse) {
+        if (empty($uploadUrlResponse)) {
             $uploadUrlResponse = $this->getUploadUrl($bucketId);
         }
 

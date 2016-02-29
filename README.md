@@ -8,3 +8,35 @@
 ```
 composer require partner-it/b2-php
 ```
+
+## Setup
+
+Instantiate a new client and get a token:
+
+```
+<?php
+
+$client = new \B2\B2Client('accountid', 'applicationKey');
+$client->requestToken();
+
+```
+
+### Upload a file
+
+```
+<?php
+
+$client->Files->uploadFile('bucketId', '/my/local/path/image.jpg', 'image.jpg', 'image/jpeg');
+
+```
+
+### Dowload a file
+
+Download a file by name:
+
+```
+<?php
+
+$data = $b2Client->Files->downloadFileByName('bucketname', 'image.jpg');
+
+```
