@@ -80,15 +80,16 @@ class B2Client
     public function requestToken()
     {
 
-        $results = $this->curl('https://api.backblaze.com/b2api/v1/b2_authorize_account', 'GET', [
+        $response = $this->curl('https://api.backblaze.com/b2api/v1/b2_authorize_account', 'GET', [
             $this->buildBasicAuthHeader()
         ]);
 
-        if ($results['statusCode'] === 200) {
-            $this->setToken($results['responseBody']);
+        $data = $response->getJsonData();
+        if ($response->getStatusCode() === 200) {
+            $this->setToken($data);
             return true;
         } else {
-            throw new \RuntimeException('Failed to get token: ' . $results['responseBody']['message']);
+            throw new \RuntimeException('Failed to get token: ' . $data['message']);
         }
 
     }
@@ -115,14 +116,15 @@ class B2Client
         $headers[] = "Accept: application/json";
         $body      = json_encode($data);
 
-        $result = $this->curl($this->apiUrl . '/b2api/v1/' . $endpoint, $method, $headers, $body);
+        $response = $this->curl($this->apiUrl . '/b2api/v1/' . $endpoint, $method, $headers, $body);
 
-        if ($result['statusCode'] >= 200 && $result['statusCode'] < 300) {
-            return $result['responseBody'];
+        if ($response->getStatusCode() >= 200 && $response->getStatusCode() < 300) {
+            return $response->getJsonData();
         }
 
-        if ($result['statusCode'] >= 400) {
-            throw new \RuntimeException('Error ' . $result['statusCode'] . ' - ' . $result['responseBody']['message']);
+        if ($response->getStatusCode() >= 400) {
+            $data = $response->getJsonData();
+            throw new \RuntimeException('Error ' . $response->getStatusCode() . ' - ' . $data['message']);
         }
 
     }
@@ -131,12 +133,13 @@ class B2Client
      * @param $uri
      * @param string $method
      * @param array $headers
-     * @param mixed $body
-     * @return array
-     * @throws \Exception
+     * @param null $body
+     * @return B2Response
      */
-    public function curl($uri, $method = 'GET', $headers = [], $body = null, $raw = false)
+    public function curl($uri, $method = 'GET', $headers = [], $body = null)
     {
+
+        $response = new B2Response();
 
         $this->CurlRequest->setOption(CURLOPT_URL, $uri);
         $this->CurlRequest->setOption(CURLOPT_CUSTOMREQUEST, $method);
@@ -144,19 +147,19 @@ class B2Client
         $this->CurlRequest->setOption(CURLOPT_POST, 1);
         $this->CurlRequest->setOption(CURLOPT_POSTFIELDS, $body);
         $this->CurlRequest->setOption(CURLOPT_HTTPHEADER, $headers);
+        $this->CurlRequest->setOption(CURLOPT_HEADERFUNCTION,
+            function ($curl, $header) use ($response) {
+                $response->addHeader($header);
+                return strlen($header);
+            });
 
         $resp = $this->CurlRequest->execute();
         if ($this->CurlRequest->getErrorNo() !== 0) {
             throw new \RuntimeException('curl error ' . $this->CurlRequest->getError() . '" - Code: ' . $this->CurlRequest->getErrorNo());
         } else {
-            if ($raw) {
-                return $resp;
-            } else {
-                return [
-                    'statusCode'   => $this->CurlRequest->getInfo(CURLINFO_HTTP_CODE),
-                    'responseBody' => json_decode($resp, true)
-                ];
-            }
+            $response->setData($resp);
+            $response->setStatusCode($this->CurlRequest->getInfo(CURLINFO_HTTP_CODE));
+            return $response;
         }
     }
 
@@ -191,20 +194,8 @@ class B2Client
         $headers[] = "Content-Type: " . $contentType;
         $headers[] = "X-Bz-Content-Sha1: " . $fileDataSha1;
 
-        $this->CurlRequest->setOption(CURLOPT_URL, $uploadUrl);
-        $this->CurlRequest->setOption(CURLOPT_POST, true);
-        $this->CurlRequest->setOption(CURLOPT_POSTFIELDS, $fileData);
-        $this->CurlRequest->setOption(CURLOPT_HTTPHEADER, $headers);
-
-        $resp = $this->CurlRequest->execute();
-        if ($this->CurlRequest->getErrorNo() !== 0) {
-            throw new \RuntimeException('curl error ' . $this->CurlRequest->getError() . '" - Code: ' . $this->CurlRequest->getErrorNo());
-        } else {
-            return [
-                'statusCode'   => $this->CurlRequest->getInfo(CURLINFO_HTTP_CODE),
-                'responseBody' => json_decode($resp, true)
-            ];
-        }
+        $response = $this->curl($uploadUrl, 'POST', $headers, $fileData);
+        return $response->getJsonData();
     }
 
     /**
@@ -213,22 +204,16 @@ class B2Client
     public function downloadFileByName($uri)
     {
 
-        $uri = $this->downloadUrl . "/file/" . $uri;
-        $this->CurlRequest->setOption(CURLOPT_URL, $uri);
-        $this->CurlRequest->setOption(CURLOPT_CUSTOMREQUEST, 'GET');
-        $this->CurlRequest->setOption(CURLOPT_RETURNTRANSFER, 1);
-
+        $uri     = $this->downloadUrl . "/file/" . $uri;
         $headers = [
             $this->buildTokenAuthHeader()
         ];
 
-        $this->CurlRequest->setOption(CURLOPT_HTTPHEADER, $headers);
-
-        $resp = $this->CurlRequest->execute();
-        if ($this->CurlRequest->getErrorNo() !== 0) {
-            throw new \RuntimeException('curl error ' . $this->CurlRequest->getError() . '" - Code: ' . $this->CurlRequest->getErrorNo());
+        $response = $this->curl($uri, 'GET', $headers);
+        if ($response->getStatusCode() === 200) {
+            return $response->getData();
         } else {
-            return $resp;
+            throw new \RuntimeException('Download failed. ' . $response->getStatusCode());
         }
     }
 

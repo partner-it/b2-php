@@ -3,6 +3,7 @@
 namespace B2\Test;
 
 use B2\B2Client;
+use B2\B2Response;
 
 /**
  * Class B2ClientTest
@@ -16,30 +17,34 @@ class B2ClientTest extends \PHPUnit_Framework_TestCase
      */
     public function testInit()
     {
+        $client = new B2Client('myid', 'mykey');
+        $this->assertInstanceOf('B2\B2Client', $client);
+        $this->assertInstanceOf('B2\Files\Files', $client->Files);
+    }
+
+    public function testCurlWrapper()
+    {
 
         $CurlRequest = $this->getMockBuilder('\\PartnerIT\Curl\\Network\\CurlRequest')
             ->getMock();
-
         $CurlRequest->method('execute')
             ->willReturn('foo');
-
-        $CurlRequest->method('execute')
-            ->willReturn('foo');
-
         $CurlRequest->method('setOption')
             ->willReturn(true);
-
         $CurlRequest->method('getErrorNo')
             ->willReturn(0);
-
         $CurlRequest->method('getInfo')
             ->will($this->returnValueMap([
                 [CURLINFO_HTTP_CODE, 200],
             ]));
 
         $client = new B2Client('myid', 'mykey', $CurlRequest);
-        $this->assertInstanceOf('B2\B2Client', $client);
-        $this->assertInstanceOf('B2\Files\Files', $client->Files);
+
+        $result = $client->curl('url', 'GET', ['header' => 'value'], 'mybody');
+        $this->assertInstanceOf('\\B2\\B2Response', $result);
+        $this->assertEquals(200, $result->getStatusCode());
+        $this->assertEquals('foo', $result->getData());
+
     }
 
     public function testCallSuccess()
@@ -61,7 +66,10 @@ class B2ClientTest extends \PHPUnit_Framework_TestCase
 
         $client->method('curl')
             ->will($this->returnCallback(function () {
-                return ['statusCode' => 200, 'responseBody' => ['message' => 'doh']];
+                $response = new B2Response();
+                $response->setStatusCode(200);
+                $response->setData(json_encode(['message' => 'doh']));
+                return $response;
             }));
 
         $result = $client->call('endpoint', 'POST');
@@ -92,7 +100,11 @@ class B2ClientTest extends \PHPUnit_Framework_TestCase
 
         $client->method('curl')
             ->will($this->returnCallback(function () {
-                return ['statusCode' => 400, 'responseBody' => ['message' => 'This is a serverside error message']];
+
+                $response = new B2Response();
+                $response->setStatusCode(400);
+                $response->setData(json_encode(['message' => 'This is a serverside error message']));
+                return $response;
             }));
 
         $result = $client->call('endpoint', 'POST');
@@ -113,14 +125,14 @@ class B2ClientTest extends \PHPUnit_Framework_TestCase
 
         $client->method('curl')
             ->will($this->returnCallback(function () {
-                return [
-                    'statusCode'   => 200,
-                    'responseBody' => [
-                        'downloadUrl'        => 'https://downloadurl',
-                        'apiUrl'             => 'https://apiurl',
-                        'authorizationToken' => 'authToken'
-                    ]
-                ];
+                $response = new B2Response();
+                $response->setStatusCode(200);
+                $response->setData(json_encode([
+                    'downloadUrl'        => 'https://downloadurl',
+                    'apiUrl'             => 'api',
+                    'authorizationToken' => 'This is a serverside error message'
+                ]));
+                return $response;
             }));
 
         $result = $client->requestToken();
