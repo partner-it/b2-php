@@ -117,4 +117,13 @@ class Files
         return $this->B2Client->downloadFileByName($bucketName . '/' . $fileName);
     }
 
+    /**
+     * @param $bucketId
+     * @param $fileName
+     */
+    public function hideFile($bucketId, $fileName) 
+    {
+        return $this->B2Client->call('b2_hide_file', 'POST', ['bucketId' => $bucketId, 'fileName' => $fileName]);
+    }
+
 }
