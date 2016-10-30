@@ -51,11 +51,11 @@ class Files
 
         $allresults = [];
         $result     = $this->listFileNames($bucketId, $startFileName);
-        $allresults = array_merge($allresults, $result['responseBody']['files']);
+        $allresults = array_merge($allresults, $result['files']);
 
-        if ($result['responseBody']['nextFileName'] !== null) {
+        if ($result['nextFileName'] !== null) {
             $allresults = array_merge($allresults,
-                $this->listAllFileNames($bucketId, $result['responseBody']['nextFileName']));
+                $this->listAllFileNames($bucketId, $result['nextFileName']));
         }
 
         return $allresults;
@@ -126,4 +126,11 @@ class Files
         return $this->B2Client->call('b2_hide_file', 'POST', ['bucketId' => $bucketId, 'fileName' => $fileName]);
     }
 
+    /**
+     * @param $fileName
+     * @param $fileId
+     */
+    public function deleteFileVersion($fileName, $fileId) {
+        return $this->B2Client->call('b2_delete_file_version', 'POST', ['fileName' => $fileName, 'fileId' => $fileId]);
+    }
 }
