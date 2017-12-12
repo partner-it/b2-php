@@ -1,4 +1,5 @@
 <?php
+
 namespace B2\Files;
 
 use B2\B2Client;
@@ -96,8 +97,9 @@ class Files
             $uploadUrlResponse = $this->getUploadUrl($bucketId);
         }
 
-        $handle       = fopen($filePath, 'r');
-        $fileData     = fread($handle, filesize($filePath));
+        $handle   = fopen($filePath, 'r');
+        $fileData = fread($handle, filesize($filePath));
+        fclose($handle);
         $fileDataSha1 = sha1_file($filePath);
 
         return $this->B2Client->uploadData($fileData, $fileDataSha1, $fileName, $contentType,
@@ -121,7 +123,7 @@ class Files
      * @param $bucketId
      * @param $fileName
      */
-    public function hideFile($bucketId, $fileName) 
+    public function hideFile($bucketId, $fileName)
     {
         return $this->B2Client->call('b2_hide_file', 'POST', ['bucketId' => $bucketId, 'fileName' => $fileName]);
     }
@@ -130,7 +132,8 @@ class Files
      * @param $fileName
      * @param $fileId
      */
-    public function deleteFileVersion($fileName, $fileId) {
+    public function deleteFileVersion($fileName, $fileId)
+    {
         return $this->B2Client->call('b2_delete_file_version', 'POST', ['fileName' => $fileName, 'fileId' => $fileId]);
     }
 }
