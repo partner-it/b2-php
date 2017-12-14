@@ -141,6 +141,10 @@ class B2Client
 
         $response = new B2Response();
 
+        if (!is_resource($this->CurlRequest->getHandle())) {
+            $this->CurlRequest->init();
+        }
+
         $this->CurlRequest->setOption(CURLOPT_URL, $uri);
         $this->CurlRequest->setOption(CURLOPT_CUSTOMREQUEST, $method);
         $this->CurlRequest->setOption(CURLOPT_RETURNTRANSFER, 1);
@@ -150,15 +154,19 @@ class B2Client
         $this->CurlRequest->setOption(CURLOPT_HEADERFUNCTION,
             function ($curl, $header) use ($response) {
                 $response->addHeader($header);
+
                 return strlen($header);
             });
 
         $resp = $this->CurlRequest->execute();
         if ($this->CurlRequest->getErrorNo() !== 0) {
+            $this->CurlRequest->close();
             throw new \RuntimeException('curl error ' . $this->CurlRequest->getError() . '" - Code: ' . $this->CurlRequest->getErrorNo());
         } else {
             $response->setData($resp);
             $response->setStatusCode($this->CurlRequest->getInfo(CURLINFO_HTTP_CODE));
+            $this->CurlRequest->close();
+
             return $response;
         }
     }
@@ -225,4 +233,10 @@ class B2Client
         return $this->downloadUrl;
     }
 
+    public function __destruct()
+    {
+        if ($this->CurlRequest && is_resource($this->CurlRequest->getHandle())) {
+            $this->CurlRequest->close();
+        }
+    }
 }
